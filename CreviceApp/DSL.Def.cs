@@ -70,6 +70,11 @@ namespace CreviceApp.DSL
         public class MoveDown  : AcceptableInIfStrokeClause { }
         public class MoveLeft  : AcceptableInIfStrokeClause { }
         public class MoveRight : AcceptableInIfStrokeClause { }
+
+	    public class KeyPress : AcceptableInIfSingleTriggerButtonClause
+	    {
+			public uint Key { get; set; }
+	    }
             
         public class ConstantSingleton
         {

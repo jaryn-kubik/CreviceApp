@@ -53,6 +53,16 @@ namespace CreviceApp.Core
             return root.@when(func);
         }
 
+	    public DSL.Def.KeyPress KeyPress(uint key, uint modifiers = 0)
+	    {
+		    return new DSL.Def.KeyPress { Key = key | modifiers };
+	    }
+
+		public void MessageBox(string text)
+	    {
+		    System.Windows.Forms.MessageBox.Show(text);
+	    }
+
         public void Tooltip(string text)
         {
             Tooltip(text, Global.UserConfig.UI.TooltipPositionBinding(WinAPI.Window.Window.GetPhysicalCursorPos()));

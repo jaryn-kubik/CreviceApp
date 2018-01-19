@@ -74,7 +74,16 @@ namespace CreviceApp.Core
             {
                 public IDoubleActionSet GetPair() { return Constant.X2ButtonDown; }
             }
-        }
+
+	        public class KeyPress : IEvent, ISingleAction
+			{
+		        private readonly uint _key;
+		        public KeyPress(uint key) => _key = key;
+
+				public override bool Equals(object obj) => obj is KeyPress keyPress && keyPress._key == _key;
+				public override int GetHashCode() => (int)_key;
+			}
+		}
 
         public enum Direction
         {

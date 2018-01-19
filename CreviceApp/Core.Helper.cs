@@ -103,6 +103,10 @@ namespace CreviceApp.Core
             {
                 return Def.Constant.X2ButtonDown;
             }
+			else if (ifButton is DSL.Def.KeyPress keyPress)
+            {
+	            return new Def.Event.KeyPress(keyPress.Key);
+            }
             else
             {
                 throw new ArgumentException();

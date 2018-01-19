@@ -9,7 +9,11 @@ namespace CreviceApp.WinAPI.Constants
     // https://msdn.microsoft.com/ja-jp/library/windows/desktop/dd375731(v=vs.85).aspx
     public static class VirtualKeys
     {
-        public const ushort VK_LBUTTON              = 0x01; // Left mouse button
+	    public const uint MOD_SHIFT = 0x100;
+	    public const uint MOD_CTRL = 0x200;
+	    public const uint MOD_ALT = 0x400;
+
+		public const ushort VK_LBUTTON              = 0x01; // Left mouse button
         public const ushort VK_RBUTTON              = 0x02; // Right mouse button
         public const ushort VK_CANCEL               = 0x03; // Control-break processing
         public const ushort VK_MBUTTON              = 0x04; // Middle mouse button (three-button mouse)

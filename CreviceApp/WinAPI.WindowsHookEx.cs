@@ -11,7 +11,9 @@ namespace CreviceApp.WinAPI.WindowsHookEx
 {
 	public class WindowsHook : IDisposable
     {
-        [DllImport("user32.dll", SetLastError = true)]
+	    [DllImport("user32.dll")]
+	    public static extern short GetKeyState(uint virtualKey);
+		[DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, SystemCallback callback, IntPtr hInstance, int threadId);
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool UnhookWindowsHookEx(IntPtr hook);
@@ -292,7 +294,12 @@ namespace CreviceApp.WinAPI.WindowsHookEx
             public FLAGS flags;
             public uint time;
             public UIntPtr dwExtraInfo;
-        }
+
+	        public bool fromCreviceApp
+	        {
+		        get { return (uint)dwExtraInfo == MOUSEEVENTF_CREVICE_APP; }
+	        }
+		}
 
         [Flags]
         public enum FLAGS : uint
@@ -302,8 +309,10 @@ namespace CreviceApp.WinAPI.WindowsHookEx
             LLKHF_ALTDOWN  = 0x20,
             LLKHF_UP       = 0x80,
         }
-        
-        public LowLevelKeyboardHook(Func<Event, KBDLLHOOKSTRUCT, Result> userCallback) :
+
+	    private const uint MOUSEEVENTF_CREVICE_APP = 0xFFFFFF00;
+
+		public LowLevelKeyboardHook(Func<Event, KBDLLHOOKSTRUCT, Result> userCallback) :
             base
             (
                 HookType.WH_KEYBOARD_LL,

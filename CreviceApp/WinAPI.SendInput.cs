@@ -379,7 +379,8 @@ namespace CreviceApp.WinAPI.SendInput
         {
             var keyboardInput = new KEYBDINPUT();
             keyboardInput.wVk = keyCode;
-            return keyboardInput;
+	        keyboardInput.dwExtraInfo = MOUSEEVENTF_CREVICE_APP;
+			return keyboardInput;
         }
 
         private KEYBDINPUT ExtendedKeyEvent(ushort keyCode)

@@ -348,11 +348,13 @@ namespace CreviceApp
                     if (value)
                     {
                         mouseHook.SetHook();
+	                    keyboardHook.SetHook();
                         _captureMouse = true;
                     }
                     else
                     {
                         mouseHook.Unhook();
+	                    keyboardHook.Unhook();
                         _captureMouse = false;
                     }
                 }
@@ -360,7 +362,8 @@ namespace CreviceApp
         }
 
         private readonly LowLevelMouseHook mouseHook;
-        protected readonly AppGlobal Global;
+	    private readonly LowLevelKeyboardHook keyboardHook;
+		protected readonly AppGlobal Global;
         public readonly UserScript UserScript;
         protected readonly ReloadableGestureMachine ReloadableGestureMachine;
 
@@ -373,6 +376,7 @@ namespace CreviceApp
         public MouseGestureForm(AppGlobal Global)
         {
             this.mouseHook = new LowLevelMouseHook(MouseProc);
+	        this.keyboardHook = new LowLevelKeyboardHook(KeyboardProc);
             this.Global = Global;
             this.UserScript = new UserScript(Global);
             this.ReloadableGestureMachine = new ReloadableGestureMachine(Global, UserScript);
@@ -540,7 +544,66 @@ namespace CreviceApp
             return WindowsHook.Result.Transfer;
         }
 
-        private WindowsHook.Result Convert(bool consumed)
+	    private readonly bool[] filter = new bool[0x100];
+	    private readonly bool[] called = new bool[0x100];
+		public WindowsHook.Result KeyboardProc(LowLevelKeyboardHook.Event evnt, LowLevelKeyboardHook.KBDLLHOOKSTRUCT data)
+	    {
+		    Debug.Print("KeyboardEvent: {0} | {1}",
+			    Enum.GetName(typeof(LowLevelKeyboardHook.Event), evnt),
+			    BitConverter.ToString(BitConverter.GetBytes((uint)data.dwExtraInfo))
+		    );
+
+		    if (data.fromCreviceApp)
+		    {
+			    Debug.Print("{0} was passed to the next hook because this event has the signature of CreviceApp",
+				    Enum.GetName(typeof(LowLevelKeyboardHook.Event),
+					    evnt));
+			    return WindowsHook.Result.Transfer;
+		    }
+
+		    switch (evnt)
+		    {
+				case LowLevelKeyboardHook.Event.WM_KEYDOWN:
+				case LowLevelKeyboardHook.Event.WM_SYSKEYDOWN:
+					if (!called[data.vkCode])
+					{
+						called[data.vkCode] = true;
+						if (ReloadableGestureMachine.Instance.Input(new Core.Def.Event.KeyPress(data.vkCode | GetModifiers()), Point.Empty))
+						{
+							filter[data.vkCode] = true;
+						}
+					}
+					return Convert(filter[data.vkCode]);
+
+				case LowLevelKeyboardHook.Event.WM_KEYUP:
+				case LowLevelKeyboardHook.Event.WM_SYSKEYUP:
+					if (called[data.vkCode])
+					{
+						called[data.vkCode] = false;
+					}
+					if (filter[data.vkCode])
+					{
+						filter[data.vkCode] = false;
+						return WindowsHook.Result.Cancel;
+					}
+					return WindowsHook.Result.Transfer;
+			}
+			return WindowsHook.Result.Transfer;
+		}
+
+	    private uint GetModifier(uint key, uint value)
+	    {
+		    return (WindowsHook.GetKeyState(key) & 0x8000) != 0 ? value : 0;
+	    }
+
+	    private uint GetModifiers()
+	    {
+		    return GetModifier(WinAPI.Constants.VirtualKeys.VK_SHIFT, WinAPI.Constants.VirtualKeys.MOD_SHIFT) |
+		           GetModifier(WinAPI.Constants.VirtualKeys.VK_CONTROL, WinAPI.Constants.VirtualKeys.MOD_CTRL) |
+		           GetModifier(WinAPI.Constants.VirtualKeys.VK_MENU, WinAPI.Constants.VirtualKeys.MOD_ALT);
+	    }
+
+		private WindowsHook.Result Convert(bool consumed)
         {
             if (consumed)
             {
