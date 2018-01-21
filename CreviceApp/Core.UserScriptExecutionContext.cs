@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ using System.Windows.Forms;
 
 namespace CreviceApp.Core
 {
-    public class UserScriptExecutionContext
+	public class UserScriptExecutionContext
     {
         public readonly DSL.Def.LeftButton   LeftButton   = DSL.Def.Constant.LeftButton;
         public readonly DSL.Def.MiddleButton MiddleButton = DSL.Def.Constant.MiddleButton;
@@ -107,5 +108,23 @@ namespace CreviceApp.Core
         {
             Global.MainForm.ShowBalloon(text, title, icon, timeout);
         }
-    }
+
+	    public Bitmap GetPixels(int x, int y, int width, int height)
+	    {
+		    var bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+		    using (var graphics = Graphics.FromImage(bmp))
+		    {
+			    graphics.CopyFromScreen(x, y, 0, 0, new Size(width, height));
+				return bmp;
+		    }
+		}
+
+	    public Color GetPixel(int x, int y)
+	    {
+		    using (var bmp = GetPixels(x, y, 1, 1))
+		    {
+			    return bmp.GetPixel(0, 0);
+		    }
+	    }
+	}
 }
